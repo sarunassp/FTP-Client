@@ -56,6 +56,7 @@ namespace FTP_Client
         private async void buttonChangeDirectory_Click (object sender, EventArgs e)
         {
             textBoxMainDirectory.Text += listBox1.SelectedItem.ToString () + "/";
+            currentDirectory = textBoxMainDirectory.Text;
             listBox1.DataSource = await Task.Run (() => ftpClient.GetDirectoryInfo (textBoxMainDirectory.Text));
         }
 
