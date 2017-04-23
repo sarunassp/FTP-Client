@@ -64,6 +64,7 @@ namespace FTP_Client
         {
             textBoxMainDirectory.Text = textBoxMainDirectory.Text.TrimEnd ('/');
             textBoxMainDirectory.Text = textBoxMainDirectory.Text.Remove (textBoxMainDirectory.Text.LastIndexOf ('/') + 1);
+            currentDirectory = textBoxMainDirectory.Text;
 
             listBox1.DataSource = await Task.Run (() => ftpClient.GetDirectoryInfo (""));
         }

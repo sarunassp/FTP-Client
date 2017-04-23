@@ -60,7 +60,7 @@ namespace FTP_Client
 
             FtpWebResponse response = (FtpWebResponse)request.GetResponse ();
             Stream streamReader = response.GetResponseStream ();
-            FileStream fileStream = new FileStream (localDestinationFilePath + "/" + fileToDownloadPath.Split ('/').Last (), FileMode.Create);
+            FileStream fileStream = new FileStream (localDestinationFilePath, FileMode.Create);
 
             int bytesRead = 0;
             buffer = new byte[2048];

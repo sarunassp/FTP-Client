@@ -35,7 +35,6 @@
             this.buttonChangeDirectory = new System.Windows.Forms.Button();
             this.buttonDownload = new System.Windows.Forms.Button();
             this.buttonUpload = new System.Windows.Forms.Button();
-            this.button5 = new System.Windows.Forms.Button();
             this.textBoxUsername = new System.Windows.Forms.TextBox();
             this.textBoxPassword = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
@@ -112,15 +111,6 @@
             this.buttonUpload.UseVisualStyleBackColor = true;
             this.buttonUpload.Click += new System.EventHandler(this.buttonUpload_Click);
             // 
-            // button5
-            // 
-            this.button5.Location = new System.Drawing.Point(440, 374);
-            this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(120, 45);
-            this.button5.TabIndex = 7;
-            this.button5.Text = "button5";
-            this.button5.UseVisualStyleBackColor = true;
-            // 
             // textBoxUsername
             // 
             this.textBoxUsername.Location = new System.Drawing.Point(440, 84);
@@ -191,7 +181,6 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.textBoxPassword);
             this.Controls.Add(this.textBoxUsername);
-            this.Controls.Add(this.button5);
             this.Controls.Add(this.buttonUpload);
             this.Controls.Add(this.buttonDownload);
             this.Controls.Add(this.buttonChangeDirectory);
@@ -215,7 +204,6 @@
         private System.Windows.Forms.Button buttonChangeDirectory;
         private System.Windows.Forms.Button buttonDownload;
         private System.Windows.Forms.Button buttonUpload;
-        private System.Windows.Forms.Button button5;
         private System.Windows.Forms.TextBox textBoxUsername;
         private System.Windows.Forms.TextBox textBoxPassword;
         private System.Windows.Forms.Label label2;
