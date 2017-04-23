@@ -20,8 +20,6 @@ namespace FTP_Client
             this.ftpClient = new FTPClient ();
             this.currentDirectory = "";
 
-
-
             InitializeComponent ();
             listBox1.DataSource = ftpClient.GetDirectoryInfo ("");
             textBoxMainDirectory.Text = "/";
