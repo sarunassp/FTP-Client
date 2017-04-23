@@ -17,24 +17,25 @@ namespace FTP_Client
 
         public Form1 ()
         {
-            this.ftpClient = new FTPClient ();
-            this.currentDirectory = "";
+            ftpClient = new FTPClient (this);
 
             InitializeComponent ();
-            listBox1.DataSource = ftpClient.GetDirectoryInfo ("");
             textBoxMainDirectory.Text = "/";
+        }
+
+        public void showMessage (string msg)
+        {
+            MessageBox.Show (msg);
         }
 
         private async void buttonConnect_Click (object sender, EventArgs e)
         {
-            this.ftpClient = new FTPClient (textBoxUsername.Text, textBoxPassword.Text, textBoxHost.Text);
-            try
-            {
-                listBox1.DataSource = await Task.Run (() => ftpClient.GetDirectoryInfo (""));
-            } catch (Exception)
-            {
-                MessageBox.Show ("Something unexpected happened");
-            }
+            if (string.IsNullOrEmpty (textBoxUsername.Text) || string.IsNullOrEmpty (textBoxPassword.Text) ||
+                string.IsNullOrEmpty (textBoxHost.Text))
+                return;
+
+            this.ftpClient = new FTPClient (textBoxUsername.Text, textBoxPassword.Text, textBoxHost.Text, this);
+            listBox1.DataSource = await Task.Run (() => ftpClient.GetDirectoryInfo (""));
 
         }
 
@@ -49,55 +50,33 @@ namespace FTP_Client
             saveFileDialog1.InitialDirectory = "c:\\";
             if (saveFileDialog1.ShowDialog () == DialogResult.OK)
             {
-                try
-                {
-                    ftpClient.DownloadFile (saveFileDialog1.FileName, currentDirectory + listBox1.Text);
-                }
-                catch (Exception)
-                {
-                    MessageBox.Show ("Something unexpected happened");
-                }
+
+                ftpClient.DownloadFile (saveFileDialog1.FileName, currentDirectory + listBox1.Text);
             }
+
         }
 
         private void buttonUpload_Click (object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty (textBoxUsername.Text) || string.IsNullOrEmpty (textBoxPassword.Text) ||
                 string.IsNullOrEmpty (textBoxHost.Text))
-            {
-                MessageBox.Show ("Please log in!");
                 return;
-            }
-
 
             OpenFileDialog openFileDialog1 = new OpenFileDialog ();
 
             openFileDialog1.InitialDirectory = "c:\\";
             if (openFileDialog1.ShowDialog () == DialogResult.OK)
             {
-                try
-                {
-                    ftpClient.UploadFile (openFileDialog1.FileName, currentDirectory);
-                }
-                catch (Exception)
-                {
-                    MessageBox.Show ("Something unexpected happened");
-                }
+                ftpClient.UploadFile (openFileDialog1.FileName, currentDirectory);
             }
         }
 
         private async void buttonChangeDirectory_Click (object sender, EventArgs e)
         {
-            try
-            {
-                listBox1.DataSource = await Task.Run (() => ftpClient.GetDirectoryInfo (textBoxMainDirectory.Text));
-            }
-            catch (Exception)
-            {
-                MessageBox.Show ("Something unexpected happened changing directories");
-                return;
-            }
+            listBox1.DataSource = await Task.Run (() => ftpClient.GetDirectoryInfo (textBoxMainDirectory.Text));
 
+            if (string.IsNullOrEmpty (listBox1.Text))
+                return;
             textBoxMainDirectory.Text += listBox1.SelectedItem.ToString () + "/";
             currentDirectory = textBoxMainDirectory.Text;
          }
@@ -107,15 +86,7 @@ namespace FTP_Client
             if (textBoxMainDirectory.Text == "/")
                 return;
 
-            try
-            {
-                listBox1.DataSource = await Task.Run (() => ftpClient.GetDirectoryInfo (""));
-            }
-            catch (Exception)
-            {
-                MessageBox.Show ("Something unexpected happened changing directories");
-                return;
-            }
+            listBox1.DataSource = await Task.Run (() => ftpClient.GetDirectoryInfo (""));
 
             textBoxMainDirectory.Text = textBoxMainDirectory.Text.TrimEnd ('/');
             textBoxMainDirectory.Text = textBoxMainDirectory.Text.Remove (textBoxMainDirectory.Text.LastIndexOf ('/') + 1);

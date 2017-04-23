@@ -10,23 +10,25 @@ namespace FTP_Client
 {
     class FTPClient
     {
-        string username = "demo-user";
-        string password = "demo-user";
-        string hostname = "ftp://demo.wftpserver.com/";
+        string username;
+        string password;
+        string hostname;
         NetworkCredential networkCredentials = null;
-
+        Form1 form;
         byte[] buffer;
 
-        public FTPClient ()
+        public FTPClient (Form1 form)
         {
+            this.form = form;
             this.networkCredentials = new NetworkCredential (username, password);
         }
 
-        public FTPClient (string username, string password, string hostname)
+        public FTPClient (string username, string password, string hostname, Form1 form)
         {
             this.username = username;
             this.password = password;
             this.hostname = hostname;
+            this.form = form;
 
             this.networkCredentials = new NetworkCredential (username, password);
         }
@@ -34,86 +36,120 @@ namespace FTP_Client
 
         public void UploadFile (string uploadFilePath, string uploadPath)
         {
-            FtpWebRequest request = (FtpWebRequest)FtpWebRequest.Create (hostname + uploadPath + "/" + Path.GetFileName (uploadFilePath));
+            try
+            {
+                FtpWebRequest request = (FtpWebRequest)FtpWebRequest.Create (hostname + uploadPath + "/" + Path.GetFileName (uploadFilePath));
 
-            request.Method = WebRequestMethods.Ftp.UploadFile;
-            request.Credentials = networkCredentials;
+                request.Method = WebRequestMethods.Ftp.UploadFile;
+                request.Credentials = networkCredentials;
 
-            FileStream stream = File.OpenRead (uploadFilePath);
-            buffer = new byte[stream.Length];
+                FileStream stream = File.OpenRead (uploadFilePath);
+                buffer = new byte[stream.Length];
 
-            stream.Read (buffer, 0, buffer.Length);
-            stream.Close ();
+                stream.Read (buffer, 0, buffer.Length);
+                stream.Close ();
 
-            Stream reqStream = request.GetRequestStream ();
-            reqStream.Write (buffer, 0, buffer.Length);
-            reqStream.Close ();
+                Stream reqStream = request.GetRequestStream ();
+                reqStream.Write (buffer, 0, buffer.Length);
+                reqStream.Close ();
+            }
+            catch (Exception ex)
+            {
+                form.showMessage ("An error has occured" + Environment.NewLine +
+                                  "ERROR" + ex.Message);
+            }
         }
 
 
         public void DownloadFile (string localDestinationFilePath, string fileToDownloadPath)
         {
-            FtpWebRequest request = (FtpWebRequest)FtpWebRequest.Create (hostname + "/" + fileToDownloadPath);
 
-            request.Method = WebRequestMethods.Ftp.DownloadFile;
-            request.Credentials = networkCredentials;
-
-            FtpWebResponse response = (FtpWebResponse)request.GetResponse ();
-            Stream streamReader = response.GetResponseStream ();
-            FileStream fileStream = new FileStream (localDestinationFilePath, FileMode.Create);
-
-            int bytesRead = 0;
-            buffer = new byte[2048];
-
-            while (true)
+            try
             {
-                bytesRead = streamReader.Read (buffer, 0, buffer.Length);
+                FtpWebRequest request = (FtpWebRequest)FtpWebRequest.Create (hostname + "/" + fileToDownloadPath);
 
-                if (bytesRead == 0)
-                    break;
+                request.Method = WebRequestMethods.Ftp.DownloadFile;
+                request.Credentials = networkCredentials;
 
-                fileStream.Write (buffer, 0, bytesRead);
+                FtpWebResponse response = (FtpWebResponse)request.GetResponse ();
+                Stream streamReader = response.GetResponseStream ();
+                FileStream fileStream = new FileStream (localDestinationFilePath, FileMode.Create);
+
+                int bytesRead = 0;
+                buffer = new byte[2048];
+
+                while (true)
+                {
+                    bytesRead = streamReader.Read (buffer, 0, buffer.Length);
+
+                    if (bytesRead == 0)
+                        break;
+
+                    fileStream.Write (buffer, 0, bytesRead);
+                }
+
+                fileStream.Close ();
+                streamReader.Close ();
             }
-
-            fileStream.Close ();
-            streamReader.Close ();
+            catch (Exception ex)
+            {
+                form.showMessage ("An error has occured" + Environment.NewLine +
+                                  "ERROR" + ex.Message);
+            }
         }
 
 
         public List<string> GetDirectoryInfo (string currentDirectory)
         {
-            FtpWebRequest request = (FtpWebRequest)WebRequest.Create (hostname + "/" + currentDirectory);
-            request.Credentials = networkCredentials;
-            request.Method = WebRequestMethods.Ftp.ListDirectory;
-
-            FtpWebResponse response = (FtpWebResponse)request.GetResponse ();
-            StreamReader streamReader = new StreamReader (response.GetResponseStream ());
-
-            var list = new List<string> ();
-
-            string line = streamReader.ReadLine ();
-            while (!string.IsNullOrEmpty (line))
+            try
             {
-                list.Add (line);
-                line = streamReader.ReadLine ();
+                FtpWebRequest request = (FtpWebRequest)WebRequest.Create (hostname + "/" + currentDirectory);
+                request.Credentials = networkCredentials;
+                request.Method = WebRequestMethods.Ftp.ListDirectory;
+
+                FtpWebResponse response = (FtpWebResponse)request.GetResponse ();
+                StreamReader streamReader = new StreamReader (response.GetResponseStream ());
+
+                var list = new List<string> ();
+
+                string line = streamReader.ReadLine ();
+                while (!string.IsNullOrEmpty (line))
+                {
+                    list.Add (line);
+                    line = streamReader.ReadLine ();
+                }
+
+                streamReader.Close ();
+
+                return list;
             }
-
-            streamReader.Close ();
-
-            return list;
+            catch (Exception ex)
+            {
+                form.showMessage ("An error has occured" + Environment.NewLine +
+                                  "ERROR" + ex.Message);
+                return null;
+            }
         }
 
 
         public void DeleteFile (string fileToDeletePath, string fileToDeleteName)
         {
-            FtpWebRequest request = (FtpWebRequest)FtpWebRequest.Create (hostname + fileToDeletePath + "/" + fileToDeleteName);
+            try
+            {
+                FtpWebRequest request = (FtpWebRequest)FtpWebRequest.Create (hostname + fileToDeletePath + "/" + fileToDeleteName);
 
-            request.Method = WebRequestMethods.Ftp.DeleteFile;
-            request.Credentials = networkCredentials;
+                request.Method = WebRequestMethods.Ftp.DeleteFile;
+                request.Credentials = networkCredentials;
 
-            FtpWebResponse response = (FtpWebResponse)request.GetResponse ();
+                FtpWebResponse response = (FtpWebResponse)request.GetResponse ();
 
-            response.Close ();
+                response.Close ();
+            }
+            catch (Exception ex)
+            {
+                form.showMessage ("An error has occured" + Environment.NewLine +
+                                  "ERROR" + ex.Message);
+            }
         }
 
 
