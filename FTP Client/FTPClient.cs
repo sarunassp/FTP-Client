@@ -55,7 +55,7 @@ namespace FTP_Client
             }
             catch (Exception ex)
             {
-                form.showMessage ("An error has occured" + Environment.NewLine +
+                form.ShowMessage ("An error has occured" + Environment.NewLine +
                                   "ERROR" + ex.Message);
             }
         }
@@ -93,7 +93,7 @@ namespace FTP_Client
             }
             catch (Exception ex)
             {
-                form.showMessage ("An error has occured" + Environment.NewLine +
+                form.ShowMessage ("An error has occured" + Environment.NewLine +
                                   "ERROR" + ex.Message);
             }
         }
@@ -125,7 +125,7 @@ namespace FTP_Client
             }
             catch (Exception ex)
             {
-                form.showMessage ("An error has occured" + Environment.NewLine +
+                form.ShowMessage ("An error has occured" + Environment.NewLine +
                                   "ERROR" + ex.Message);
                 return null;
             }
@@ -147,7 +147,7 @@ namespace FTP_Client
             }
             catch (Exception ex)
             {
-                form.showMessage ("An error has occured" + Environment.NewLine +
+                form.ShowMessage ("An error has occured" + Environment.NewLine +
                                   "ERROR" + ex.Message);
             }
         }

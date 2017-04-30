@@ -23,7 +23,7 @@ namespace FTP_Client
             textBoxMainDirectory.Text = "/";
         }
 
-        public void showMessage (string msg)
+        public void ShowMessage (string msg)
         {
             MessageBox.Show (msg);
         }
@@ -95,6 +95,10 @@ namespace FTP_Client
             
         }
 
-
+        private void button1_Click (object sender, EventArgs e)
+        {
+            var client = new FTPClientWithTCP ("demo-user", "demo-user", "demo.wftpserver.com", this);
+            client.LogIn ();
+        }
     }
 }
