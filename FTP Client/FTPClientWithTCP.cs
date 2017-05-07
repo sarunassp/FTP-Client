@@ -22,12 +22,16 @@ namespace FTP_Client
         private byte[] buffer = new byte[bufferLength];
         private string result = string.Empty;
         private int bytesReceived = 0;
+        private int charsReceived = 0;
         private string hostResponse = string.Empty;
+        private List<string> stringList = new List<string> ();
 
         TcpClient tcpClient = new TcpClient ();
-        NetworkStream stream = null;
-        StreamReader reader = null;
+        Stream stream = null;
         StreamWriter writer = null;
+
+        TcpClient tcpClientDataConnection = new TcpClient ();
+        Stream streamDataConnection = null;
 
         Form1 form = null;
         #endregion
@@ -47,38 +51,63 @@ namespace FTP_Client
                 tcpClient.Connect (host, ftpPort);
 
                 stream = tcpClient.GetStream ();
-                reader = new StreamReader (tcpClient.GetStream ());
                 writer = new StreamWriter (tcpClient.GetStream ());
-                hostResponse = GetResponseString ();
+                hostResponse = GetResponseString (stream);
                 statusCode = int.Parse (hostResponse.Substring (0, 3));
                 if (statusCode != 220)
                 {
                     form.ShowMessage ("Failed to connect to server, host didn't respond");
-                    LogOut ();
+                    LogOut (writer);
                 }
 
 
                 writer.WriteLine ("USER " + username);
                 writer.Flush ();
-                hostResponse = GetResponseString ();
+                hostResponse = GetResponseString (stream);
                 statusCode = int.Parse (hostResponse.Substring (0, 3));
-                if (!(statusCode != 230 || statusCode != 331))
+                if (!(statusCode == 230 || statusCode == 331))
                 {
                     form.ShowMessage ("Failed to connect to server, wrong username");
-                    LogOut ();
+                    LogOut (writer);
                 }
 
 
                 writer.WriteLine ("PASS " + password);
                 writer.Flush ();
-                hostResponse = GetResponseString ();
+                hostResponse = GetResponseString (stream);
                 statusCode = int.Parse (hostResponse.Substring (0, 3));
-                if (!(statusCode != 230 || statusCode != 202))
+                if (!(statusCode == 230 || statusCode == 202))
                 {
                     form.ShowMessage ("Failed to connect to server, wrong password");
-                    LogOut ();
+                    LogOut (writer);
                 }
 
+
+                writer.WriteLine ("TYPE I");
+                writer.Flush ();
+                hostResponse = GetResponseString (stream);
+                statusCode = int.Parse (hostResponse.Substring (0, 3));
+                if (statusCode != 200)
+                {
+                    form.ShowMessage ("Error from ftp server");
+                    LogOut (writer);
+                }
+
+
+                writer.WriteLine ("PASV");
+                writer.Flush ();
+                hostResponse = GetResponseString (stream);
+                statusCode = int.Parse (hostResponse.Substring (0, 3));
+                if (statusCode != 227)
+                {
+                    form.ShowMessage ("Error from ftp server");
+                    LogOut (writer);
+                }
+
+                stringList = DecodeHostAndPort (hostResponse);
+
+                tcpClientDataConnection = new TcpClient (stringList[0], int.Parse (stringList[1]));
+                streamDataConnection = tcpClientDataConnection.GetStream ();
             }
             catch (Exception ex)
             {
@@ -89,17 +118,80 @@ namespace FTP_Client
             isLoggenIn = true;
         }
 
-        public string GetWorkingDirectory ()
+        public void DownloadFile (string localDestinationFilePath, string fileToDownloadPath)
         {
-            writer.WriteLine ("PWD");
+            if (!isLoggenIn)
+            {
+                form.ShowMessage ("Please log in");
+                return;
+            }
 
-            return GetResponseString ();
+            using (FileStream fileStream = new FileStream (localDestinationFilePath, FileMode.Create))
+            {
+                writer.WriteLine ("RETR " + fileToDownloadPath);
+                writer.Flush ();
+
+                bytesReceived = 0;
+                var buffer1 = new byte[2048];
+
+                while (true)
+                {
+                    bytesReceived = streamDataConnection.Read (buffer1, 0, buffer.Length);
+
+                    if (bytesReceived == 0)
+                        break;
+
+                    fileStream.Write (buffer1, 0, bytesReceived);
+                }
+            }
         }
 
-        public void ChangeWorkingDirectory (string newDirectory)
+        public void UploadFile (string localFileToUploadPath, string fileToUploadPath)
         {
+            if (!isLoggenIn)
+            {
+                form.ShowMessage ("Please log in");
+                return;
+            }
+
+            using (FileStream fileStream = File.OpenRead (localFileToUploadPath))
+            {
+                var fileBytesBuffer = new byte[fileStream.Length];
+                fileStream.Read (fileBytesBuffer, 0, fileBytesBuffer.Length);
+
+                writer.WriteLine ("STOR " + fileToUploadPath);
+                writer.Flush ();
+
+                streamDataConnection.Write (fileBytesBuffer, 0, fileBytesBuffer.Length);
+                streamDataConnection.Flush ();
+            }
+        }
+
+        public string GetWorkingDirectory (Stream stream)
+        {
+            if (!isLoggenIn)
+            {
+                form.ShowMessage ("Please log in");
+                return "";
+            }
+
+            writer.WriteLine ("PWD");
+            writer.Flush ();
+
+            return GetResponseString (stream);
+        }
+
+        public void ChangeWorkingDirectory (string newDirectory, StreamWriter writer, Stream stream)
+        {
+            if (!isLoggenIn)
+            {
+                form.ShowMessage ("Please log in");
+                return;
+            }
+
             writer.WriteLine ("CWD " + newDirectory);
-            hostResponse = GetResponseString ();
+            writer.Flush ();
+            hostResponse = GetResponseString (stream);
             statusCode = int.Parse (hostResponse.Substring (0, 3));
 
             if (!(statusCode != 501 || statusCode != 550))
@@ -108,7 +200,21 @@ namespace FTP_Client
             }
         }
 
-        private string GetResponseString ()
+        private List<string> DecodeHostAndPort (string hostResponse)
+        {
+            var intermediateResult = hostResponse.Split (' ').LastOrDefault ().Replace ("(", "").Replace (")", "").Split (',');
+            var list = new List<string> ();
+
+            string newHost = intermediateResult[0] + "." + intermediateResult[1] + "." + intermediateResult[2] + "." + intermediateResult[3];
+            int newPort = (int.Parse (intermediateResult[4]) * 256) + int.Parse (intermediateResult[5]);
+
+            list.Add (newHost);
+            list.Add (newPort.ToString ());
+
+            return list;
+        }
+
+        private string GetResponseString (Stream stream)
         {
             hostResponse = string.Empty;
             Array.Clear (buffer, 0, buffer.Length);
@@ -124,7 +230,7 @@ namespace FTP_Client
             return hostResponse;
         }
 
-        private void LogOut ()
+        private void LogOut (StreamWriter writer)
         {
             writer.WriteLine ("QUIT");
             writer.Flush ();

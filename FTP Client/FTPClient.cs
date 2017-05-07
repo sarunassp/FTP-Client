@@ -34,16 +34,16 @@ namespace FTP_Client
         }
 
 
-        public void UploadFile (string uploadFilePath, string uploadPath)
+        public void UploadFile (string FileToUploadPath, string uploadPath)
         {
             try
             {
-                FtpWebRequest request = (FtpWebRequest)FtpWebRequest.Create (hostname + uploadPath + "/" + Path.GetFileName (uploadFilePath));
+                FtpWebRequest request = (FtpWebRequest)FtpWebRequest.Create (hostname + uploadPath + "/" + Path.GetFileName (FileToUploadPath));
 
                 request.Method = WebRequestMethods.Ftp.UploadFile;
                 request.Credentials = networkCredentials;
 
-                FileStream stream = File.OpenRead (uploadFilePath);
+                FileStream stream = File.OpenRead (FileToUploadPath);
                 buffer = new byte[stream.Length];
 
                 stream.Read (buffer, 0, buffer.Length);
