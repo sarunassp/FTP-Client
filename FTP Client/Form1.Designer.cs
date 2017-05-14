@@ -42,7 +42,7 @@
             this.textBoxHost = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.buttonParentDirectory = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
+            this.buttonLogOut = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // listBox1
@@ -170,22 +170,22 @@
             this.buttonParentDirectory.UseVisualStyleBackColor = true;
             this.buttonParentDirectory.Click += new System.EventHandler(this.buttonParentDirectory_Click);
             // 
-            // button1
+            // buttonLogOut
             // 
-            this.button1.Location = new System.Drawing.Point(507, 365);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(216, 100);
-            this.button1.TabIndex = 16;
-            this.button1.Text = "button1";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.buttonLogOut.Location = new System.Drawing.Point(717, 459);
+            this.buttonLogOut.Name = "buttonLogOut";
+            this.buttonLogOut.Size = new System.Drawing.Size(120, 45);
+            this.buttonLogOut.TabIndex = 16;
+            this.buttonLogOut.Text = "Log out";
+            this.buttonLogOut.UseVisualStyleBackColor = true;
+            this.buttonLogOut.Click += new System.EventHandler(this.buttonLogOut_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(849, 516);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.buttonLogOut);
             this.Controls.Add(this.buttonParentDirectory);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.textBoxHost);
@@ -223,7 +223,7 @@
         private System.Windows.Forms.TextBox textBoxHost;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Button buttonParentDirectory;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button buttonLogOut;
     }
 }
 

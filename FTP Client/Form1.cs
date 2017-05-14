@@ -12,15 +12,18 @@ namespace FTP_Client
 {
     public partial class Form1 : Form
     {
-        FTPClient ftpClient;
-        string currentDirectory;
+        //FTPClient ftpClient;
+        FTPClientWithTCP ftpClient;
+        string listBoxText;
 
         public Form1 ()
         {
-            ftpClient = new FTPClient (this);
+            ftpClient = new FTPClientWithTCP (this);
 
             InitializeComponent ();
-            textBoxMainDirectory.Text = "/";
+            textBoxUsername.Text = "demo-user";
+            textBoxPassword.Text = "demo-user";
+            textBoxHost.Text = "demo.wftpserver.com";
         }
 
         public void ShowMessage (string msg)
@@ -34,8 +37,16 @@ namespace FTP_Client
                 string.IsNullOrEmpty (textBoxHost.Text))
                 return;
 
-            this.ftpClient = new FTPClient (textBoxUsername.Text, textBoxPassword.Text, textBoxHost.Text, this);
-            listBox1.DataSource = await Task.Run (() => ftpClient.GetDirectoryInfo (""));
+            if (ftpClient.isLoggenIn)
+            {
+                ShowMessage ("Please log out first");
+                return;
+            }
+
+
+            await Task.Run (() => ftpClient.LogIn(textBoxUsername.Text, textBoxPassword.Text, textBoxHost.Text));
+            listBox1.DataSource = await Task.Run (() => ftpClient.GetWorkingDirectoryInfo ());
+            textBoxMainDirectory.Text = await Task.Run (() => ftpClient.GetWorkingDirectory ());
 
         }
 
@@ -47,11 +58,10 @@ namespace FTP_Client
 
             SaveFileDialog saveFileDialog1 = new SaveFileDialog ();
 
-            saveFileDialog1.InitialDirectory = "c:\\";
+            saveFileDialog1.InitialDirectory = @"C:\Users\Lenovo\Desktop\tinklai\FtpTest";
             if (saveFileDialog1.ShowDialog () == DialogResult.OK)
             {
-
-                ftpClient.DownloadFile (saveFileDialog1.FileName, currentDirectory + listBox1.Text);
+                ftpClient.DownloadFile (saveFileDialog1.FileName, textBoxMainDirectory.Text + "/" + listBox1.Text);
             }
 
         }
@@ -64,41 +74,37 @@ namespace FTP_Client
 
             OpenFileDialog openFileDialog1 = new OpenFileDialog ();
 
-            openFileDialog1.InitialDirectory = "c:\\";
+            openFileDialog1.InitialDirectory = @"C:\Users\Lenovo\Desktop\tinklai\FtpTest";
             if (openFileDialog1.ShowDialog () == DialogResult.OK)
             {
-                ftpClient.UploadFile (openFileDialog1.FileName, currentDirectory);
+                ftpClient.UploadFile (openFileDialog1, textBoxMainDirectory.Text);
             }
         }
 
-        private async void buttonChangeDirectory_Click (object sender, EventArgs e)
+        private void buttonChangeDirectory_Click (object sender, EventArgs e)
         {
-            listBox1.DataSource = await Task.Run (() => ftpClient.GetDirectoryInfo (textBoxMainDirectory.Text));
-
-            if (string.IsNullOrEmpty (listBox1.Text))
+            if (string.IsNullOrEmpty (listBox1.Text) || !ftpClient.isLoggenIn)
                 return;
-            textBoxMainDirectory.Text += listBox1.SelectedItem.ToString () + "/";
-            currentDirectory = textBoxMainDirectory.Text;
-         }
+            listBoxText = listBox1.Text;
+            ftpClient.ChangeWorkingDirectory (textBoxMainDirectory.Text + listBoxText);
+            textBoxMainDirectory.Text = ftpClient.GetWorkingDirectory ();
+            listBox1.DataSource = ftpClient.GetWorkingDirectoryInfo ();
+        }
 
         private async void buttonParentDirectory_Click (object sender, EventArgs e)
         {
-            if (textBoxMainDirectory.Text == "/")
+            if (textBoxMainDirectory.Text == "/" || !ftpClient.isLoggenIn)
                 return;
-
-            listBox1.DataSource = await Task.Run (() => ftpClient.GetDirectoryInfo (""));
-
-            textBoxMainDirectory.Text = textBoxMainDirectory.Text.TrimEnd ('/');
-            textBoxMainDirectory.Text = textBoxMainDirectory.Text.Remove (textBoxMainDirectory.Text.LastIndexOf ('/') + 1);
-            currentDirectory = textBoxMainDirectory.Text;
-
-            
+            await Task.Run (() => ftpClient.ChangeToParentDirectory ());
+            textBoxMainDirectory.Text = await Task.Run (() => ftpClient.GetWorkingDirectory ());
+            listBox1.DataSource = await Task.Run (() => ftpClient.GetWorkingDirectoryInfo());
         }
 
-        private void button1_Click (object sender, EventArgs e)
+        private void buttonLogOut_Click (object sender, EventArgs e)
         {
-            var client = new FTPClientWithTCP ("demo-user", "demo-user", "demo.wftpserver.com", this);
-            client.LogIn ();
+            ftpClient.LogOut ();
+            listBox1.DataSource = null;
+            textBoxMainDirectory.Text = "";
         }
     }
 }
